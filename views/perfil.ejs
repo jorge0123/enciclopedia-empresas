@@ -26,6 +26,7 @@
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
       <h2 class="text-2xl font-bold mb-6 text-center">Perfil</h2>
       <form action="/actualizar-perfil" method="POST" onsubmit="return confirmUpdate();">
+        <!-- Campos del usuario -->
         <div class="mb-4">
           <label for="nombres" class="block text-sm font-medium text-gray-700">Nombres</label>
           <input type="text" name="nombres" id="nombres" value="<%= usuario.nombres %>" class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required>
@@ -42,6 +43,30 @@
           <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
           <input type="text" name="telefono" id="telefono" value="<%= usuario.telefono %>" class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required>
         </div>
+        <div class="mb-4">
+          <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+          <input type="text" name="direccion" id="direccion" value="<%= usuario.direccion %>" class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>">
+        </div>
+        <div class="mb-4">
+          <label for="foto_perfil" class="block text-sm font-medium text-gray-700">Foto de Perfil (URL)</label>
+          <input type="text" name="foto_perfil" id="foto_perfil" value="<%= usuario.foto_perfil %>" class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>">
+        </div>
+
+        <!-- Información del Plan -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Plan Actual</label>
+          <p class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>">
+            <%= plan ? plan.nombre : 'Gratis' %>
+          </p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">Fecha de Vencimiento</label>
+          <p class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>">
+            <%= usuario.fecha_vencimiento_plan ? usuario.fecha_vencimiento_plan.toLocaleDateString() : 'No tiene fecha de vencimiento' %>
+          </p>
+        </div>
+
+        <!-- Botón de Actualización -->
         <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
           Actualizar perfil
         </button>

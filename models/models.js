@@ -27,6 +27,7 @@ const usuarioSchema = new mongoose.Schema({
   blog: { type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }, // Referencia al blog del usuario
   modificaciones_realizadas: { type: Number, default: 0 }, // Contador de modificaciones
   fecha_ultima_modificacion: Date, // Fecha de la última modificación
+  fecha_vencimiento_plan: { type: Date, default: null }, // Fecha de vencimiento del plan
 });
 
 // Esquema para la colección de Blogs

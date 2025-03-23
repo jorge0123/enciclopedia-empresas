@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Planes</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PayPal SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=<%= process.env.PAYPAL_CLIENT_ID %>"></script>
 </head>
 <body class="<%= theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900' %> transition-colors duration-300">
   <!-- Navbar -->
@@ -15,40 +17,192 @@
     <div class="flex items-center space-x-4">
       <a href="/" class="text-white hover:text-gray-300">Inicio</a>
       <a href="/logout" class="text-white hover:text-gray-300">Cerrar sesión</a>
+      <button id="theme-toggle" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition">
+        <span id="theme-icon">🌙</span>
+      </button>
     </div>
   </nav>
-  
-  <!-- Contenido de planes -->
-  <div class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
-      <h1 class="text-2xl font-bold mb-6 text-center">Selecciona un plan</h1>
-      
-      <div class="space-y-4">
-        <div class="border p-4 rounded-lg">
-          <h2 class="font-semibold text-lg">Plan Gratis</h2>
-          <p>Acceso limitado a las funcionalidades básicas.</p>
-          <button class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
-            Seleccionar
-          </button>
-        </div>
 
-        <div class="border p-4 rounded-lg">
-          <h2 class="font-semibold text-lg">Plan Premium</h2>
-          <p>Acceso a todas las funcionalidades y soporte prioritario.</p>
-          <button class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
-            Seleccionar
-          </button>
-        </div>
+  <!-- Contenido principal -->
+  <div class="min-h-screen p-8">
+    <h2 class="text-3xl font-bold text-center mb-8">Nuestros Planes</h2>
 
-        <div class="border p-4 rounded-lg">
-          <h2 class="font-semibold text-lg">Plan Empresa</h2>
-          <p>Características avanzadas para empresas con necesidades específicas.</p>
-          <button class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
-            Seleccionar
-          </button>
-        </div>
+    <!-- Sección de planes -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Plan Gratis -->
+      <div class="bg-white p-6 rounded-lg shadow-lg <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
+        <h3 class="text-2xl font-semibold mb-4">Plan Gratis</h3>
+        <p class="text-gray-600 mb-4 <%= theme === 'dark' ? 'text-gray-300' : 'text-gray-600' %>">Ideal para empezar.</p>
+        <p class="text-4xl font-bold mb-4">$0<span class="text-lg">/mes</span></p>
+        <ul class="mb-6">
+          <li class="mb-2">✔️ Funcionalidades básicas</li>
+          <li class="mb-2">✔️ 1 blog</li>
+          <li class="mb-2">✔️ Soporte por correo</li>
+        </ul>
+        <button class="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 transition">
+          Seleccionar
+        </button>
+      </div>
+
+      <!-- Plan Premium -->
+      <div class="bg-white p-6 rounded-lg shadow-lg <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
+        <h3 class="text-2xl font-semibold mb-4">Plan Premium</h3>
+        <p class="text-gray-600 mb-4 <%= theme === 'dark' ? 'text-gray-300' : 'text-gray-600' %>">Para usuarios avanzados.</p>
+        <p class="text-4xl font-bold mb-4">$10<span class="text-lg">/mes</span></p>
+        <ul class="mb-6">
+          <li class="mb-2">✔️ Funcionalidades avanzadas</li>
+          <li class="mb-2">✔️ Blogs ilimitados</li>
+          <li class="mb-2">✔️ Soporte prioritario</li>
+          <li class="mb-2">✔️ Acceso a nuevas funciones</li>
+        </ul>
+        <div id="paypal-button-container-premium"></div>
+      </div>
+
+      <!-- Plan Empresarial -->
+      <div class="bg-white p-6 rounded-lg shadow-lg <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
+        <h3 class="text-2xl font-semibold mb-4">Plan Empresarial</h3>
+        <p class="text-gray-600 mb-4 <%= theme === 'dark' ? 'text-gray-300' : 'text-gray-600' %>">Para empresas.</p>
+        <p class="text-4xl font-bold mb-4">$25<span class="text-lg">/mes</span></p>
+        <ul class="mb-6">
+          <li class="mb-2">✔️ Todas las funciones Premium</li>
+          <li class="mb-2">✔️ Soporte 24/7</li>
+          <li class="mb-2">✔️ Personalización avanzada</li>
+          <li class="mb-2">✔️ Acceso a API</li>
+        </ul>
+        <div id="paypal-button-container-empresarial"></div>
       </div>
     </div>
+
+    <!-- Sección "Comunícate con nosotros" -->
+    <div class="mt-16 bg-white p-8 rounded-lg shadow-lg <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
+      <h2 class="text-3xl font-bold text-center mb-8">Comunícate con Nosotros</h2>
+      <form class="max-w-2xl mx-auto">
+        <div class="mb-4">
+          <label for="nombre" class="block text-sm font-medium mb-2">Nombre</label>
+          <input type="text" id="nombre" class="w-full p-2 border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required>
+        </div>
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium mb-2">Correo Electrónico</label>
+          <input type="email" id="email" class="w-full p-2 border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required>
+        </div>
+        <div class="mb-4">
+          <label for="mensaje" class="block text-sm font-medium mb-2">Mensaje</label>
+          <textarea id="mensaje" rows="5" class="w-full p-2 border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required></textarea>
+        </div>
+        <button type="submit" class="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 transition">
+          Enviar Mensaje
+        </button>
+      </form>
+    </div>
   </div>
+
+  <!-- Script para manejar el tema -->
+  <script>
+    function applyTheme(theme) {
+      const body = document.body;
+      const themeIcon = document.getElementById('theme-icon');
+      
+      if (theme === 'dark') {
+        body.classList.add('bg-gray-900', 'text-white');
+        body.classList.remove('bg-gray-100', 'text-gray-900');
+        themeIcon.textContent = '🌙';
+      } else {
+        body.classList.add('bg-gray-100', 'text-gray-900');
+        body.classList.remove('bg-gray-900', 'text-white');
+        themeIcon.textContent = '☀️';
+      }
+      
+      localStorage.setItem('theme', theme);
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+    });
+    
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const newTheme = document.body.classList.contains('bg-gray-900') ? 'light' : 'dark';
+      applyTheme(newTheme);
+    });
+  </script>
+
+  <!-- Script para manejar el pago con PayPal -->
+  <script>
+    // Botón de PayPal para el Plan Premium
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return fetch('/crear-pago-paypal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: '10.00', // Monto del pago
+            currency: 'USD', // Moneda
+          }),
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error('Error al crear el pago');
+          }
+          return res.json();
+        }).then(order => order.id);
+      },
+      onApprove: function(data, actions) {
+        return fetch(`/capturar-pago-paypal/${data.orderID}`, {
+          method: 'POST',
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error('Error al capturar el pago');
+          }
+          return res.json();
+        }).then(details => {
+          alert('Pago completado: ' + details.payer.name.given_name);
+        }).catch(err => {
+          console.error('Error:', err);
+          alert('Hubo un error al procesar el pago.');
+        });
+      },
+      onError: function(err) {
+        console.error('Error en el flujo de PayPal:', err);
+        alert('Hubo un error en el flujo de PayPal.');
+      }
+    }).render('#paypal-button-container-premium');
+
+    // Botón de PayPal para el Plan Empresarial
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return fetch('/crear-pago-paypal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: '25.00', // Monto del pago
+            currency: 'USD', // Moneda
+          }),
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error('Error al crear el pago');
+          }
+          return res.json();
+        }).then(order => order.id);
+      },
+      onApprove: function(data, actions) {
+        return fetch(`/capturar-pago-paypal/${data.orderID}`, {
+          method: 'POST',
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error('Error al capturar el pago');
+          }
+          return res.json();
+        }).then(details => {
+          alert('Pago completado: ' + details.payer.name.given_name);
+        }).catch(err => {
+          console.error('Error:', err);
+          alert('Hubo un error al procesar el pago.');
+        });
+      },
+      onError: function(err) {
+        console.error('Error en el flujo de PayPal:', err);
+        alert('Hubo un error en el flujo de PayPal.');
+      }
+    }).render('#paypal-button-container-empresarial');
+  </script>
 </body>
 </html>

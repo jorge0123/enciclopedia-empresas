@@ -5,20 +5,30 @@ const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const paypal = require('@paypal/checkout-server-sdk');
 require('dotenv').config();
 
 const app = express();
 
+// Configurar el entorno de PayPal (Sandbox o Producción)
+const environment = new paypal.core.SandboxEnvironment(
+  process.env.PAYPAL_CLIENT_ID, // Usa tus credenciales de Sandbox
+  process.env.PAYPAL_CLIENT_SECRET
+);
+
+// Crear el cliente de PayPal
+const client = new paypal.core.PayPalHttpClient(environment);
+
 // Middleware para parsear datos del formulario
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
 
 // Configuración de la sesión
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret-key', // Usa una variable de entorno o un valor por defecto
+  secret: process.env.SESSION_SECRET || 'secret-key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // Cambia a true si estás usando HTTPS
+  cookie: { secure: false }
 }));
 
 // Conectar a MongoDB
@@ -198,6 +208,11 @@ app.get('/', async (req, res) => {
   }
 });
 
+// Ruta para mostrar la página de planes
+app.get('/planes', (req, res) => {
+  res.render('planes', { theme: req.session.theme || 'light' });
+});
+
 // Ruta para mostrar la página de registro
 app.get('/register', (req, res) => {
   res.render('register', { theme: req.session.theme || 'light' });
@@ -260,7 +275,26 @@ app.get('/logout', (req, res) => {
 // Ruta para mostrar la página de perfil
 app.get('/perfil', requireAuth, async (req, res) => {
   const usuario = req.session.usuario;
-  res.render('perfil', { usuario, theme: req.session.theme });
+
+  try {
+    // Obtener el plan del usuario
+    const plan = await Plan.findById(usuario.tipo_plan);
+
+    // Calcular la fecha de vencimiento (si existe)
+    const fechaVencimiento = usuario.fecha_vencimiento_plan
+      ? usuario.fecha_vencimiento_plan.toLocaleDateString() // Formatear la fecha
+      : 'No tiene fecha de vencimiento';
+
+    res.render('perfil', {
+      usuario,
+      plan,
+      fechaVencimiento,
+      theme: req.session.theme,
+    });
+  } catch (err) {
+    console.error('Error al obtener el perfil:', err);
+    res.status(500).send('Error al cargar el perfil');
+  }
 });
 
 // Ruta para crear un blog (mostrar el formulario)
@@ -455,14 +489,10 @@ app.post('/eliminar-blog', requireAuth, async (req, res) => {
     res.status(500).send('Error al eliminar el blog: ' + err.message);
   }
 });
-// Ruta para mostrar el perfil y el formulario de actualización
-app.get('/perfil', requireAuth, async (req, res) => {
-  const usuario = req.session.usuario;
-  res.render('perfil', { usuario, theme: req.session.theme });
-});
+
 // Ruta para procesar la actualización del perfil
 app.post('/actualizar-perfil', requireAuth, async (req, res) => {
-  const { nombres, apellidos, telefono, email } = req.body;
+  const { nombres, apellidos, telefono, email, direccion, foto_perfil } = req.body;
   const usuarioId = req.session.usuario._id;
 
   try {
@@ -478,6 +508,9 @@ app.post('/actualizar-perfil', requireAuth, async (req, res) => {
     usuario.apellidos = apellidos || usuario.apellidos;
     usuario.telefono = telefono || usuario.telefono;
     usuario.email = email || usuario.email;
+    usuario.direccion = direccion || usuario.direccion;
+    usuario.foto_perfil = foto_perfil || usuario.foto_perfil;
+    usuario.fecha_actualizacion = Date.now();
 
     // Guardar los cambios en la base de datos
     await usuario.save();
@@ -486,15 +519,105 @@ app.post('/actualizar-perfil', requireAuth, async (req, res) => {
     req.session.usuario = usuario;
 
     // Redirigir al perfil con los cambios actualizados
-    res.redirect('/');
+    res.redirect('/perfil');
   } catch (err) {
     console.error('Error al actualizar el perfil:', err);
     res.status(500).send('Error al actualizar el perfil: ' + err.message);
   }
 });
 
+// Ruta para crear un pago con PayPal
+app.post('/crear-pago-paypal', async (req, res) => {
+  const { amount, currency } = req.body;
 
-// Servir la aplicación en el puerto 5001
-app.listen(5001, () => {
-  console.log('Servidor ejecutándose en http://localhost:5001');
+  // Crear la solicitud de pago
+  const request = new paypal.orders.OrdersCreateRequest();
+  request.requestBody({
+    intent: 'CAPTURE', // Capturar el pago inmediatamente
+    purchase_units: [{
+      amount: {
+        currency_code: currency, // Moneda (ej: 'USD')
+        value: amount, // Monto (ej: '10.00')
+      },
+    }],
+  });
+
+  try {
+    // Ejecutar la solicitud
+    const order = await client.execute(request);
+    
+    // Devolver el ID de la orden al frontend
+    res.json({ id: order.result.id });
+  } catch (err) {
+    console.error('Error al crear el pago:', err);
+    res.status(500).send('Error al crear el pago');
+  }
+});
+
+// Ruta para capturar un pago de PayPal
+app.post('/capturar-pago-paypal/:orderID', async (req, res) => {
+  const { orderID } = req.params;
+
+  try {
+    // Capturar el pago
+    const request = new paypal.orders.OrdersCaptureRequest(orderID);
+    request.requestBody({});
+
+    const capture = await client.execute(request);
+
+    // Obtener el email del comprador
+    const email = capture.result.payer.email_address;
+
+    // Buscar al usuario en la base de datos
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) {
+      return res.status(404).send('Usuario no encontrado.');
+    }
+
+    // Determinar el plan según el monto pagado
+    const amount = capture.result.purchase_units[0].amount.value;
+    let planNombre = 'Gratis';
+    let fechaVencimiento = null; // Por defecto, no hay fecha de vencimiento
+
+    if (amount === '10.00') {
+      planNombre = 'Premium';
+      // Calcular la fecha de vencimiento (1 mes después de la fecha actual)
+      fechaVencimiento = new Date();
+      fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 1);
+    } else if (amount === '25.00') {
+      planNombre = 'Empresarial';
+      // Calcular la fecha de vencimiento (1 mes después de la fecha actual)
+      fechaVencimiento = new Date();
+      fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 1);
+    }
+
+    // Buscar el plan en la base de datos
+    const plan = await Plan.findOne({ nombre: planNombre });
+
+    if (!plan) {
+      return res.status(404).send('Plan no encontrado.');
+    }
+
+    // Actualizar el plan del usuario, la fecha de vencimiento y reiniciar el contador de modificaciones
+    usuario.tipo_plan = plan._id;
+    usuario.fecha_vencimiento_plan = fechaVencimiento; // Asignar la fecha de vencimiento
+    usuario.modificaciones_realizadas = 0; // Reiniciar el contador
+    await usuario.save();
+
+    // Actualizar el objeto `usuario` en la sesión
+    req.session.usuario = usuario;
+
+    // Respuesta al cliente
+    res.json({ success: true, plan: planNombre });
+  } catch (err) {
+    console.error('Error al capturar el pago:', err);
+    res.status(500).send('Error al capturar el pago');
+  }
+});
+
+// Iniciar el servidor
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
