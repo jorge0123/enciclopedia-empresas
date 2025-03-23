@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-800 p-4 shadow-md flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="font-bold text-xl text-green-400">Enciclopedia</div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a href="/" class="text-white hover:text-gray-300">Inicio</a>
+      <a href="/login" class="text-white hover:text-gray-300">Iniciar sesión</a>
+      <button id="theme-toggle" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Formulario de registro -->
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div id="form-container" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+      <h1 class="text-2xl font-bold mb-6 text-center">Registro</h1>
+      <form action="/register" method="POST">
+        <div class="mb-4">
+          <label for="nombres" class="block text-sm font-medium">Nombres</label>
+          <input type="text" name="nombres" id="nombres" class="mt-1 p-2 w-full border rounded-md bg-white text-gray-900" required>
+        </div>
+        <div class="mb-4">
+          <label for="apellidos" class="block text-sm font-medium">Apellidos</label>
+          <input type="text" name="apellidos" id="apellidos" class="mt-1 p-2 w-full border rounded-md bg-white text-gray-900" required>
+        </div>
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium">Correo electrónico</label>
+          <input type="email" name="email" id="email" class="mt-1 p-2 w-full border rounded-md bg-white text-gray-900" required>
+        </div>
+        <div class="mb-4">
+          <label for="password" class="block text-sm font-medium">Contraseña</label>
+          <input type="password" name="password" id="password" class="mt-1 p-2 w-full border rounded-md bg-white text-gray-900" required>
+        </div>
+        <div class="mb-4">
+          <label for="telefono" class="block text-sm font-medium">Teléfono</label>
+          <input type="text" name="telefono" id="telefono" class="mt-1 p-2 w-full border rounded-md bg-white text-gray-900" required>
+        </div>
+        <div class="mb-4">
+          <label for="tipo" class="block text-sm font-medium">Tipo de usuario</label>
+          <select name="tipo" id="tipo" class="mt-1 p-2 w-full border rounded-md bg-white text-gray-900" required>
+            <option value="cliente">Cliente</option>
+            <option value="empresa">Empresa</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
+          Registrarse
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Script para el tema -->
+  <script>
+    function applyTheme(theme) {
+      const body = document.body;
+      const formContainer = document.getElementById('form-container');
+      const themeIcon = document.getElementById('theme-icon');
+
+      if (theme === 'dark') {
+        body.classList.replace('bg-gray-100', 'bg-gray-900');
+        body.classList.replace('text-gray-900', 'text-white');
+        formContainer.classList.replace('bg-white', 'bg-gray-800');
+        formContainer.classList.replace('text-gray-900', 'text-white');
+        themeIcon.textContent = '☀️';
+      } else {
+        body.classList.replace('bg-gray-900', 'bg-gray-100');
+        body.classList.replace('text-white', 'text-gray-900');
+        formContainer.classList.replace('bg-gray-800', 'bg-white');
+        formContainer.classList.replace('text-white', 'text-gray-900');
+        themeIcon.textContent = '🌙';
+      }
+
+      localStorage.setItem('theme', theme);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+    });
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const newTheme = document.body.classList.contains('bg-gray-900') ? 'light' : 'dark';
+      applyTheme(newTheme);
+    });
+  </script>
+</body>
+</html>

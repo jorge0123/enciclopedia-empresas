@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enciclopedia Empresas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="transition-colors duration-300" id="body">
+  <!-- Navbar -->
+  <nav class="bg-gray-800 p-4 shadow-md flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <button class="md:hidden text-xl" id="menu-toggle">
+        <span class="block w-6 h-0.5 bg-white mb-2"></span>
+        <span class="block w-6 h-0.5 bg-white mb-2"></span>
+        <span class="block w-6 h-0.5 bg-white"></span>
+      </button>
+      <div class="font-bold text-xl text-green-400">Enciclopedia</div>
+    </div>
+    
+    <div class="bg-gray-700 p-2 rounded-lg flex items-center shadow-md max-w-xs">
+      <input type="text" placeholder="Publica algo..." class="w-full p-2 outline-none bg-transparent text-white" />
+    </div>
+    
+    <div class="flex items-center space-x-4">
+      <% if (usuario) { %>
+        <span id="user-name" class="text-white font-bold">Hola, <%= usuario.nombres %></span>
+        <a href="/perfil" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">Perfil</a>
+        
+        <!-- Aquí el enlace para cerrar sesión -->
+        <a href="/logout" class="text-white hover:text-gray-300">Cerrar sesión</a>
+        
+        <% if (usuario.tipo === 'cliente') { %>
+          <!-- Botón dinámico: "Crear Blog" o "Editar Blog" -->
+          <a 
+            href="<%= usuario.blog ? '/editar-blog' : '/crear-blog' %>" 
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+          >
+            <%= usuario.blog ? 'Editar Blog' : 'Crear Blog' %>
+          </a>
+      
+          <!-- Botón para eliminar el blog (solo visible si el usuario tiene un blog) -->
+          <% if (usuario.blog) { %>
+            <form action="/eliminar-blog" method="POST" class="inline">
+              <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition">Eliminar Blog</button>
+            </form>
+          <% } %>
+        <% } else if (usuario.tipo === 'empresa') { %>
+          <a href="/mi-blog" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition">Mi Blog</a>
+        <% } %>
+      <% } else { %>
+        <!-- Si no hay usuario logueado, mostrar "Iniciar sesión" y "Registrarse" -->
+        <a href="/login" class="text-white hover:text-gray-300">Iniciar sesión</a>
+        <a href="/register" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">Registrarse</a>
+      <% } %>
+      
+      <!-- Botón para cambiar el tema -->
+      <button id="theme-toggle" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+  
+  <!-- Contenido principal -->
+  <div class="flex min-h-screen p-4 space-x-4">
+    <!-- Sidebar -->
+    <div class="w-1/4 p-4 rounded-lg shadow-lg hidden md:block" id="sidebar">
+      <div class="flex justify-center mt-4">
+        <a href="/planes" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">
+          Ver Planes
+        </a>
+      </div>
+      <h2 class="text-lg font-semibold mb-4">Menú</h2>
+      <nav class="space-y-2">
+        <a href="#" class="block p-2 hover:bg-gray-200 rounded-lg">Opción 1</a>
+        <a href="#" class="block p-2 hover:bg-gray-200 rounded-lg">Opción 2</a>
+      </nav>
+    </div>
+    
+    <!-- Publicaciones -->
+    <div class="flex-1 max-w-2xl">
+      <div class="p-4 rounded-lg shadow mb-4 flex items-center" id="post-box">
+        <input type="text" placeholder="Publica algo..." class="w-full p-2 outline-none bg-transparent body-textbox" />
+      </div>
+      
+      <div class="p-5 rounded-lg shadow-lg" id="publicaciones">
+        <h2 class="text-lg font-semibold mb-4">Empresas</h2>
+        <div class="flex space-x-4 overflow-x-auto pb-4">
+          <% if (publicaciones && publicaciones.length > 0) { %>
+            <% publicaciones.forEach(publicacion => { %>
+              <div class="w-16 h-32 relative">
+                <div class="absolute top-0 left-0 w-full h-full rounded-xl bg-gradient-to-t from-green-500 to-blue-500 opacity-70 hover:opacity-100 transition-all duration-300">
+                  <div class="w-full h-full flex justify-center items-center">
+                    <img src="https://via.placeholder.com/80x160" alt="<%= publicacion.titulo %>" class="object-cover w-14 h-28 border-4 border-white rounded-xl shadow-lg transition-all duration-300">
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p>No hay publicaciones disponibles.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Script para manejar el tema -->
+  <script>
+    function applyTheme(theme) {
+      const body = document.getElementById('body');
+      const themeIcon = document.getElementById('theme-icon');
+      const sidebar = document.getElementById('sidebar');
+      const postBox = document.getElementById('post-box');
+      const publicaciones = document.getElementById('publicaciones');
+      
+      if (theme === 'dark') {
+        body.classList.add('bg-gray-900', 'text-white');
+        body.classList.remove('bg-gray-100', 'text-gray-900');
+        sidebar.classList.add('bg-gray-800', 'text-white');
+        postBox.classList.add('bg-gray-800', 'text-white');
+        publicaciones.classList.add('bg-gray-800', 'text-white');
+        themeIcon.textContent = '🌙';
+      } else {
+        body.classList.add('bg-gray-100', 'text-gray-900');
+        body.classList.remove('bg-gray-900', 'text-white');
+        sidebar.classList.remove('bg-gray-800', 'text-white');
+        postBox.classList.remove('bg-gray-800', 'text-white');
+        publicaciones.classList.remove('bg-gray-800', 'text-white');
+        themeIcon.textContent = '☀️';
+      }
+      
+      localStorage.setItem('theme', theme);
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+    });
+    
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const newTheme = document.body.classList.contains('bg-gray-900') ? 'light' : 'dark';
+      applyTheme(newTheme);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil de Blog</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <!-- Navbar con botones de editar y guardar -->
+  <nav class="bg-gray-800 p-4 shadow-md flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="font-bold text-xl text-green-400">Enciclopedia</div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a href="/" class="text-white hover:text-gray-300">Inicio</a>
+      <a href="/logout" class="text-white hover:text-gray-300">Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <!-- Botones Editar y Guardar debajo del Navbar -->
+  <div class="text-center mt-6">
+    <div class="flex justify-center space-x-4">
+      <button id="edit-btn" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">
+        Editar Blog
+      </button>
+      <button id="save-btn" class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition hidden">
+        Guardar publicación
+      </button>
+    </div>
+  </div>
+
+  <!-- Perfil de Blog -->
+  <div class="min-h-screen flex flex-col items-center p-6">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
+      
+      <!-- Encabezado del perfil -->
+      <div id="perfil-header" class="flex items-center mb-6" contenteditable="false">
+        <img src="http://placekitten.com/200/200" alt="Foto del blog" class="w-32 h-32 rounded-full border-4 border-green-400 mr-6" contenteditable="false">
+        <div>
+          <h1 id="titulo-blog" class="text-4xl font-bold mb-2" contenteditable="false">Título del Blog</h1>
+          <p id="nombre-blog" class="text-xl text-gray-700" contenteditable="false">Nombre del Blog</p>
+        </div>
+      </div>
+
+      <!-- Descripción del blog -->
+      <div id="descripcion-blog" class="mb-6" contenteditable="false">
+        <h2 class="text-2xl font-semibold mb-2">Descripción</h2>
+        <p class="text-gray-700">Descripción del blog...</p>
+      </div>
+
+      <!-- Categorías de productos y servicios -->
+      <div id="categorias-blog" class="mb-6" contenteditable="false">
+        <h2 class="text-2xl font-semibold mb-2">Categorías</h2>
+        <p class="text-gray-700"><strong>Productos:</strong> Producto 1</p>
+        <p class="text-gray-700"><strong>Servicios:</strong> Servicio 1</p>
+      </div>
+
+      <!-- Publicaciones del Blog -->
+      <div id="blog-content" class="mb-6">
+        <h2 class="text-2xl font-semibold mb-4">Publicaciones</h2>
+        <div class="sortable-container" id="sortable-posts">
+          <div class="post-item p-6 mb-6 bg-gray-200 rounded-md" data-id="1" contenteditable="false">
+            <h3 class="text-xl font-semibold">Título de la publicación 1</h3>
+            <p class="text-sm">Contenido de la publicación del blog.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const editBtn = document.getElementById('edit-btn');
+    const saveBtn = document.getElementById('save-btn');
+    let isEditing = false;
+
+    editBtn.addEventListener('click', function() {
+      const divs = document.querySelectorAll('#perfil-header, #descripcion-blog, #categorias-blog, .post-item');
+      isEditing = !isEditing;
+
+      if (isEditing) {
+        divs.forEach(div => {
+          div.contentEditable = true;
+          div.classList.add('border', 'border-dashed', 'border-gray-500');
+        });
+
+        new Sortable(document.getElementById('sortable-posts'), {
+          animation: 150,
+          ghostClass: 'sortable-ghost'
+        });
+
+        editBtn.textContent = 'Cancelar Edición';
+        editBtn.classList.replace('bg-blue-500', 'bg-red-500');
+        saveBtn.classList.remove('hidden');
+      } else {
+        divs.forEach(div => {
+          div.contentEditable = false;
+          div.classList.remove('border', 'border-dashed', 'border-gray-500');
+        });
+
+        editBtn.textContent = 'Editar Blog';
+        editBtn.classList.replace('bg-red-500', 'bg-blue-500');
+        saveBtn.classList.add('hidden');
+      }
+    });
+
+    saveBtn.addEventListener('click', function() {
+      const updatedTitle = document.getElementById('titulo-blog').innerText;
+      const updatedDescription = document.getElementById('descripcion-blog').innerText;
+      const updatedCategories = {
+        productos: document.querySelector('#categorias-blog p strong + span').innerText,
+        servicios: document.querySelector('#categorias-blog p strong + span').innerText,
+      };
+
+      const updatedPosts = [];
+      document.querySelectorAll('.post-item').forEach(post => {
+        updatedPosts.push({
+          title: post.querySelector('h3').innerText,
+          content: post.querySelector('p').innerText
+        });
+      });
+
+      fetch('/guardar-cambios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: updatedTitle, description: updatedDescription, categories: updatedCategories, posts: updatedPosts })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+
+        document.getElementById('titulo-blog').innerText = updatedTitle;
+        document.getElementById('descripcion-blog').innerText = updatedDescription;
+
+        saveBtn.classList.add('hidden');
+      })
+      .catch(error => {
+        console.error('Error al guardar:', error);
+      });
+    });
+  </script>
+</body>
+</html>

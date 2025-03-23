@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="<%= theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900' %> transition-colors duration-300">
+  <!-- Navbar -->
+  <nav class="bg-gray-800 p-4 shadow-md flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="font-bold text-xl text-green-400">Enciclopedia</div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a href="/" class="text-white hover:text-gray-300">Inicio</a>
+      <a href="/logout" class="text-white hover:text-gray-300">Cerrar sesión</a>
+    </div>
+  </nav>
+  
+  <!-- Contenido de planes -->
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
+      <h1 class="text-2xl font-bold mb-6 text-center">Selecciona un plan</h1>
+      
+      <div class="space-y-4">
+        <div class="border p-4 rounded-lg">
+          <h2 class="font-semibold text-lg">Plan Gratis</h2>
+          <p>Acceso limitado a las funcionalidades básicas.</p>
+          <button class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
+            Seleccionar
+          </button>
+        </div>
+
+        <div class="border p-4 rounded-lg">
+          <h2 class="font-semibold text-lg">Plan Premium</h2>
+          <p>Acceso a todas las funcionalidades y soporte prioritario.</p>
+          <button class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
+            Seleccionar
+          </button>
+        </div>
+
+        <div class="border p-4 rounded-lg">
+          <h2 class="font-semibold text-lg">Plan Empresa</h2>
+          <p>Características avanzadas para empresas con necesidades específicas.</p>
+          <button class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
+            Seleccionar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

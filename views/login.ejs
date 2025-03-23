@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="<%= theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900' %> transition-colors duration-300">
+  <!-- Navbar -->
+  <nav class="bg-gray-800 p-4 shadow-md flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="font-bold text-xl text-green-400">Enciclopedia</div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a href="/" class="text-white hover:text-gray-300">Inicio</a>
+      <a href="/register" class="text-white hover:text-gray-300">Registrarse</a>
+      <button id="theme-toggle" class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Formulario de inicio de sesión -->
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md <%= theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900' %>">
+      <h2 class="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
+      <form action="/login" method="POST">
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+          <input type="email" name="email" id="email" class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required>
+        </div>
+        <div class="mb-4">
+          <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+          <input type="password" name="password" id="password" class="mt-1 p-2 w-full border rounded-md <%= theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-900' %>" required>
+        </div>
+        <button type="submit" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">
+          Iniciar sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Script para el tema -->
+  <script>
+    function applyTheme(theme) {
+      const body = document.body;
+      const themeIcon = document.getElementById('theme-icon');
+      
+      if (theme === 'dark') {
+        body.classList.add('bg-gray-900', 'text-white');
+        body.classList.remove('bg-gray-100', 'text-gray-900');
+        themeIcon.textContent = '🌙';
+      } else {
+        body.classList.add('bg-gray-100', 'text-gray-900');
+        body.classList.remove('bg-gray-900', 'text-white');
+        themeIcon.textContent = '☀️';
+      }
+      
+      localStorage.setItem('theme', theme);
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+    });
+    
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const newTheme = document.body.classList.contains('bg-gray-900') ? 'light' : 'dark';
+      applyTheme(newTheme);
+    });
+  </script>
+</body>
+</html>
